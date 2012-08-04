@@ -33,6 +33,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -43,17 +44,27 @@
     <Compile Include="APNG.cs" />
     <Compile Include="BitDepth.cs" />
     <Compile Include="Chunks\ChunkType.cs" />
+    <Compile Include="Chunks\Idat.cs" />
     <Compile Include="Chunks\Ihdr.cs" />
     <Compile Include="Chunks\APngChunk.cs" />
     <Compile Include="Chunks\IEnd.cs" />
+    <Compile Include="Chunks\Plte.cs" />
     <Compile Include="ColorType.cs" />
     <Compile Include="CompressionMethod.cs" />
+    <Compile Include="Decoder\IDecoder.cs" />
+    <Compile Include="Encoder\IEncoder.cs" />
+    <Compile Include="Encoder\SimpleEncoder.cs" />
+    <Compile Include="InternalImage.cs" />
+    <Compile Include="Decoder\SimpleDecoder.cs" />
+    <Compile Include="Exceptions\UnsupportedPixelTypeException.cs" />
     <Compile Include="Exceptions\EncoderException.cs" />
     <Compile Include="FilterMethod.cs" />
-    <Compile Include="Hash\Crc32.cs" />
+    <Compile Include="Helper\Crc32.cs" />
+    <Compile Include="Helper\NoHelper.cs" />
     <Compile Include="InterlaceMethod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

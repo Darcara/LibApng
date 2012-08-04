@@ -8,13 +8,13 @@ namespace Omega.Lib.APNG.Chunks
 	{
 	public class Ihdr : APngChunk
 		{
-		private readonly uint _width;
-		private readonly uint _height;
-		private readonly BitDepth _bitDepth;
-		private readonly ColorType _colorType;
-		private readonly CompressionMethod _compressionMethod;
-		private readonly FilterMethod _filterMethod;
-		private readonly InterlaceMethod _interlaceMethod;
+		public readonly uint Width;
+		public readonly uint Height;
+		public readonly BitDepth BitDepth;
+		public readonly ColorType ColorType;
+		public readonly CompressionMethod CompressionMethod;
+		public readonly FilterMethod FilterMethod;
+		public readonly InterlaceMethod InterlaceMethod;
 
 		public Ihdr(UInt32 width, UInt32 height, BitDepth bitDepth, ColorType colorType, CompressionMethod compressionMethod = CompressionMethod.Default, FilterMethod filterMethod = FilterMethod.Default, InterlaceMethod interlaceMethod = InterlaceMethod.None) : base(ChunkType.IHDR)
 			{
@@ -29,23 +29,23 @@ namespace Omega.Lib.APNG.Chunks
 				{
 				case ColorType.Grayscale:
 					if(!(allowedBitDepths = new[] { BitDepth._1, BitDepth._2, BitDepth._4, BitDepth._8, BitDepth._16 }).Contains(bitDepth))
-						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + "bd, ", s => s.Trim().Substring(0, s.Length - 1)), colorType));
+						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + bd + ", ", s => s.Trim().Substring(0, s.Length - 2)), colorType));
 					break;
 				case ColorType.Rgb:
 					if(!(allowedBitDepths = new[]{BitDepth._8, BitDepth._16}).Contains(bitDepth))
-						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + "bd, ", s => s.Trim().Substring(0, s.Length-1)), colorType));
+						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + bd + ", ", s => s.Trim().Substring(0, s.Length - 2)), colorType));
 					break;
 				case ColorType.Palette:
 					if(!(allowedBitDepths = new[] { BitDepth._1, BitDepth._2, BitDepth._4, BitDepth._8}).Contains(bitDepth))
-						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + "bd, ", s => s.Trim().Substring(0, s.Length - 1)), colorType));
+						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + bd + ", ", s => s.Trim().Substring(0, s.Length - 2)), colorType));
 					break;
 				case ColorType.GrayscaleWithAlpha:
 					if(!(allowedBitDepths = new[] { BitDepth._8, BitDepth._16}).Contains(bitDepth))
-						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + "bd, ", s => s.Trim().Substring(0, s.Length - 1)), colorType));
+						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + bd + ", ", s => s.Trim().Substring(0, s.Length - 2)), colorType));
 					break;
 				case ColorType.Rgba:
 					if(!(allowedBitDepths = new[] { BitDepth._8, BitDepth._16}).Contains(bitDepth))
-						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + "bd, ", s => s.Trim().Substring(0, s.Length - 1)), colorType));
+						throw new ArgumentOutOfRangeException("bitDepth", String.Format("bitDepth must be one of {0} for colorType {1}", allowedBitDepths.Aggregate("", (s, bd) => s + bd + ", ", s => s.Trim().Substring(0, s.Length - 2)), colorType));
 					break;
 				default:
 					throw new ArgumentOutOfRangeException("colorType", String.Format("Unknown colorType: {0}", colorType));
@@ -58,17 +58,17 @@ namespace Omega.Lib.APNG.Chunks
 
 			var allowedInterlaceMethods = new[] {InterlaceMethod.None, InterlaceMethod.Adam7};
 			if(!allowedInterlaceMethods.Contains(interlaceMethod))
-				throw new ArgumentOutOfRangeException("interlaceMethod", String.Format("interlaceMethod must be one of {0}", allowedInterlaceMethods.Aggregate("", (s, bd) => s + "bd, ", s => s.Trim().Substring(0, s.Length - 1))));
+				throw new ArgumentOutOfRangeException("interlaceMethod", String.Format("interlaceMethod must be one of {0}", allowedInterlaceMethods.Aggregate("", (s, bd) => s + bd + ", ", s => s.Trim().Substring(0, s.Length - 2))));
 
 			#endregion
 
-			_width = width;
-			_height = height;
-			_bitDepth = bitDepth;
-			_colorType = colorType;
-			_compressionMethod = compressionMethod;
-			_filterMethod = filterMethod;
-			_interlaceMethod = interlaceMethod;
+			Width = width;
+			Height = height;
+			BitDepth = bitDepth;
+			ColorType = colorType;
+			CompressionMethod = compressionMethod;
+			FilterMethod = filterMethod;
+			InterlaceMethod = interlaceMethod;
 			}
 
 		#region Implementation of APngChunk
@@ -80,13 +80,13 @@ namespace Omega.Lib.APNG.Chunks
 				var ms = new MemoryStream();
 
 				var writer = new BinaryWriter(ms);
-				writer.Write(BitConverter.GetBytes(_width).Reverse().ToArray());
-				writer.Write(BitConverter.GetBytes(_height).Reverse().ToArray());
-				writer.Write((Byte)_bitDepth);
-				writer.Write((Byte)_colorType);
-				writer.Write((Byte)_compressionMethod);
-				writer.Write((Byte)_filterMethod);
-				writer.Write((Byte)_interlaceMethod);
+				writer.Write(BitConverter.GetBytes(Width).Reverse().ToArray());
+				writer.Write(BitConverter.GetBytes(Height).Reverse().ToArray());
+				writer.Write((Byte)BitDepth);
+				writer.Write((Byte)ColorType);
+				writer.Write((Byte)CompressionMethod);
+				writer.Write((Byte)FilterMethod);
+				writer.Write((Byte)InterlaceMethod);
 				
 
 				return ms;

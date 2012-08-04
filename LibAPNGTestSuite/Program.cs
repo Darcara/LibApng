@@ -1,5 +1,10 @@
-﻿using System.IO;
+﻿using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
 using Omega.Lib.APNG.Chunks;
+using Omega.Lib.APNG.Decoder;
+using Omega.Lib.APNG.Encoder;
 
 namespace Omega.Lib.APNG.Test
 	{
@@ -7,9 +12,27 @@ namespace Omega.Lib.APNG.Test
 		{
 		static void Main(string[] args)
 			{
-			var apng = new APNG(new Ihdr(1, 1, BitDepth._8, ColorType.Rgb));
+			uint dim = 100;
 
-			File.Delete("simple100x100.png");
+			var i = new Bitmap((int)dim, (int)dim, PixelFormat.Format24bppRgb);
+			var g = Graphics.FromImage(i);
+			g.FillRectangle(new SolidBrush(Color.Transparent), 0, 0, i.Width, i.Height);
+			g.DrawEllipse(new Pen(Color.IndianRed), 1, 1, i.Width / 2, i.Height / 2);
+			g.DrawRectangle(new Pen(Color.GreenYellow, 4), i.Width / 2, i.Width / 2, i.Width / 2 - 4, i.Width / 2 - 4);
+
+
+
+			var ihdr = new Ihdr(dim, dim, BitDepth._8, ColorType.Rgb);
+			var apng = new APNG(ihdr);
+
+			apng.RegisterDecoder(new SimpleDecoder());
+			apng.Encoder = new SimpleEncoder();
+
+			apng.AddDefaultImageFromObject(i);
+
+
+			if(File.Exists("simple100x100.png")) 
+				File.Delete("simple100x100.png");
 			apng.ToFile("simple100x100.png");
 			}
 		}
