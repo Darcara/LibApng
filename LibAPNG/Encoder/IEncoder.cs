@@ -8,7 +8,7 @@ namespace Omega.Lib.APNG.Encoder
 	{
 	public interface IEncoder
 		{
-		byte[] Encode(InternalImage img);
+		byte[] Encode(InternalImage img, InternalImage lastImage);
 		Plte CreatePalette(InternalImage img);
 		}
 	}

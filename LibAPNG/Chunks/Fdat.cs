@@ -5,21 +5,26 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using Omega.Lib.APNG.Helper;
 
 namespace Omega.Lib.APNG.Chunks
 	{
-	public class Idat : APngChunk
+	public class Fdat : APngChunk
 		{
+		private readonly uint _frame;
 		protected MemoryStream MemStream;
 
-		public Idat(byte[] imageData, bool needToDeflate = false)
-			: base(ChunkType.IDAT)
+		public Fdat(UInt32 frame, byte[] imageData, bool needToDeflate = false)
+			: base(ChunkType.fdAT)
 			{
+			_frame = frame;
+
 			if(!needToDeflate)
 				MemStream = new MemoryStream(imageData);
 			else
 				{
 				MemStream = new MemoryStream();
+				MemStream.Write(NoHelper.GetBytes(_frame),0,4);
 				MemStream.WriteByte(0x78);
 				MemStream.WriteByte(0x9c);
 				using(var gzip = new DeflateStream(MemStream, CompressionMode.Compress, true))
@@ -31,7 +36,6 @@ namespace Omega.Lib.APNG.Chunks
 				}
 			}
 
-
 		#region Overrides of APngChunk
 
 		public override MemoryStream Data
@@ -40,7 +44,6 @@ namespace Omega.Lib.APNG.Chunks
 			}
 
 		#endregion
-
 
 		private byte[] Adler32(byte[] stream, int offset, int length)
 			{

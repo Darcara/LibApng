@@ -11,13 +11,13 @@ namespace Omega.Lib.APNG.Chunks
 		{
 		private readonly uint _numberOfFrames;
 		private readonly uint _numberOfLoops;
-		private MemoryStream _memStream = new MemoryStream();
+		private readonly MemoryStream _memStream = new MemoryStream();
 
 		public Actl(UInt32 numberOfFrames, UInt32 numberOfLoops) : base(ChunkType.acTL)
 			{
 			#region sanity
 			if(numberOfFrames == 0)
-				throw new ArgumentOutOfRangeException("numberOfFrames", "numberOfFrames cannot");
+				throw new ArgumentOutOfRangeException("numberOfFrames", "numberOfFrames cannot be 0");
 			#endregion
 
 			_numberOfFrames = numberOfFrames;

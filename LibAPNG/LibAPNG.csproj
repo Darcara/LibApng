@@ -42,8 +42,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APNG.cs" />
+    <Compile Include="ApngBlendOperation.cs" />
+    <Compile Include="ApngDisposeOperation.cs" />
     <Compile Include="BitDepth.cs" />
+    <Compile Include="Chunks\Actl.cs" />
     <Compile Include="Chunks\ChunkType.cs" />
+    <Compile Include="Chunks\Fdat.cs" />
+    <Compile Include="Chunks\Fctl.cs" />
     <Compile Include="Chunks\Idat.cs" />
     <Compile Include="Chunks\Ihdr.cs" />
     <Compile Include="Chunks\APngChunk.cs" />
@@ -54,6 +59,7 @@
     <Compile Include="Decoder\IDecoder.cs" />
     <Compile Include="Encoder\IEncoder.cs" />
     <Compile Include="Encoder\SimpleEncoder.cs" />
+    <Compile Include="Helper\Rational.cs" />
     <Compile Include="InternalImage.cs" />
     <Compile Include="Decoder\SimpleDecoder.cs" />
     <Compile Include="Exceptions\UnsupportedPixelTypeException.cs" />

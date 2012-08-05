@@ -15,7 +15,7 @@ namespace Omega.Lib.APNG.Encoder
 
 		#region Implementation of IEncoder
 
-		public byte[] Encode(InternalImage img)
+		public byte[] Encode(InternalImage img, InternalImage lastImg)
 			{
 			Int64 stride = img.RgbData.Length/img.Ihdr.Height;
 			var pngData = new byte[img.Ihdr.Height * (stride + 1)];

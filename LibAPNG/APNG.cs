@@ -18,6 +18,7 @@ namespace Omega.Lib.APNG
 	/// </summary>
 	public class APNG
 		{
+
 		[ThreadStatic]
 		private static Crc32 _crc32;
 		public static readonly byte[] MagicBytes = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
@@ -31,12 +32,16 @@ namespace Omega.Lib.APNG
 
 		public Boolean DefaultImageSet { get; protected set; }
 		public UInt32 FramesAdded { get; protected set; }
+		public UInt32 Loops = 0;
+		private UInt32 _sequenceNumber = 0;
+		private InternalImage _lastImage = null;
 		
-		public APNG(Ihdr ihdr)
+		
+		public APNG(Ihdr ihdr, UInt32 loops = 0)
 			{
+			Loops = loops;
 			_crc32 = new Crc32();
 			Ihdr = ihdr;
-			_chunks.Add(ihdr);
 			}
 
 		public void RegisterDecoder(IDecoder decoder)
@@ -53,6 +58,10 @@ namespace Omega.Lib.APNG
 				{
 				foreach (var b in MagicBytes)
 					fileOut.WriteByte(b);
+
+				WriteChunk(Ihdr, fileOut);
+				if(FramesAdded > 0)
+					WriteChunk(new Actl(FramesAdded, Loops), fileOut);
 
 				foreach(var pngChunk in _chunks)
 					WriteChunk(pngChunk, fileOut);
@@ -92,9 +101,31 @@ namespace Omega.Lib.APNG
 			stream.Write(bytes, 0, count);
 			}
 
-		public void AddFrameFromObject(Object obj)
+		public void AddKeyFrameFromObject(Object obj, Rational delay = default(Rational))
 			{
-			throw new NotImplementedException();
+			if(obj == null)
+				throw new ArgumentNullException("obj");
+
+			InternalImage img = DecodeObject(obj);
+			if(img == null)
+				throw new ArgumentException("No decoder for object type " + obj.GetType().Name);
+
+			if(img.RgbPaletteData != null)
+				_chunks.Add(Encoder.CreatePalette(img));
+
+			var fctl = new Fctl(Ihdr, _sequenceNumber++, 0, 0, img.Ihdr.Width, img.Ihdr.Height, delay, ApngDisposeOperation.None, ApngBlendOperation.Source);
+			_chunks.Add(fctl);
+
+			if(!DefaultImageSet)
+				{
+				_chunks.Add(new Idat(Encoder.Encode(img, null), true));
+				DefaultImageSet = true;
+				}
+			else
+				_chunks.Add(new Fdat(_sequenceNumber++, Encoder.Encode(img, _lastImage), true));
+
+			_lastImage = img;
+			++FramesAdded;
 			}
 
 		/// <summary>
@@ -116,7 +147,7 @@ namespace Omega.Lib.APNG
 			if(img.RgbPaletteData != null)
 				_chunks.Add(Encoder.CreatePalette(img));
 
-			_chunks.Add(new Idat(Encoder.Encode(img), true));
+			_chunks.Add(new Idat(Encoder.Encode(img, null), true));
 
 			DefaultImageSet = true;
 			}

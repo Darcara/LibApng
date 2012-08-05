@@ -26,6 +26,7 @@ namespace Omega.Lib.APNG.Chunks
 		public static readonly ChunkType tEXt = new ChunkType("tEXt");
 		public static readonly ChunkType zTXt = new ChunkType("zTXt");
 
+		public static readonly ChunkType fdAT = new ChunkType("fdAT");
 		public static readonly ChunkType acTL = new ChunkType("acTL");
 		public static readonly ChunkType fcTL = new ChunkType("fcTL");
 
