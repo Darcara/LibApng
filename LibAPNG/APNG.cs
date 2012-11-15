@@ -113,17 +113,24 @@ namespace Omega.Lib.APNG
 			if(img.RgbPaletteData != null)
 				_chunks.Add(Encoder.CreatePalette(img));
 
-			var fctl = new Fctl(Ihdr, _sequenceNumber++, 0, 0, img.Ihdr.Width, img.Ihdr.Height, delay, ApngDisposeOperation.None, ApngBlendOperation.Source);
-			_chunks.Add(fctl);
-
 			if(!DefaultImageSet)
 				{
-				_chunks.Add(new Idat(Encoder.Encode(img, null), true));
+				Tuple<Fctl, Idat> image = Encoder.EncodeImage(Ihdr, img, _sequenceNumber);
+
+				_chunks.Add(image.Item1);
+				_chunks.Add(image.Item2);
 				DefaultImageSet = true;
+				_sequenceNumber += 1;
 				}
 			else
-				_chunks.Add(new Fdat(_sequenceNumber++, Encoder.Encode(img, _lastImage), true));
+				{
+				Tuple<Fctl, Fdat> frame = Encoder.EncodeFrame(Ihdr, img, _sequenceNumber, _lastImage, delay);
 
+				_chunks.Add(frame.Item1);
+				_chunks.Add(frame.Item2);
+				_sequenceNumber += 2;
+				}
+			
 			_lastImage = img;
 			++FramesAdded;
 			}
@@ -147,8 +154,8 @@ namespace Omega.Lib.APNG
 			if(img.RgbPaletteData != null)
 				_chunks.Add(Encoder.CreatePalette(img));
 
-			_chunks.Add(new Idat(Encoder.Encode(img, null), true));
-
+			var image = Encoder.EncodeImage(Ihdr, img, _sequenceNumber-1);
+			_chunks.Add(image.Item2);
 			DefaultImageSet = true;
 			}
 

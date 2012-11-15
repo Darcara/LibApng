@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using Omega.Lib.APNG.Chunks;
@@ -7,7 +8,7 @@ using Omega.Lib.APNG.Helper;
 
 namespace Omega.Lib.APNG.Encoder
 	{
-	public class SimpleEncoder : IEncoder
+	public class DefaultEncoder : IEncoder
 		{
 		protected byte[] Encode(InternalImage img, InternalImage lastImg)
 			{
@@ -36,8 +37,13 @@ namespace Omega.Lib.APNG.Encoder
 			return new Tuple<Fctl, Idat>(new Fctl(ihdr, sequenceNumber, 0, 0, img.Ihdr.Width, img.Ihdr.Height, new Rational(0, 0), ApngDisposeOperation.None, ApngBlendOperation.Source), new Idat(Encode(img, null), true));
 			}
 
+		//read http://stackoverflow.com/questions/6216094/implementing-the-apng-render-function
 		public Tuple<Fctl, Fdat> EncodeFrame(Ihdr ihdr, InternalImage img, uint sequenceNumber, InternalImage lastImage, Rational delay)
 			{
+			Rectangle bb = CalculateDifferenceBoundingBox(img, lastImage);
+			float approxns = ApproximateCompressionSize(img, lastImage, bb, ApngDisposeOperation.None, ApngBlendOperation.Source);
+			float approxns = ApproximateCompressionSize(img, lastImage, bb, ApngDisposeOperation., ApngBlendOperation.Source);
+
 			return new Tuple<Fctl, Fdat>(new Fctl(ihdr, sequenceNumber, 0, 0, img.Ihdr.Width, img.Ihdr.Height, delay, ApngDisposeOperation.None, ApngBlendOperation.Source), new Fdat(sequenceNumber+1, Encode(img, lastImage), true));
 			}
 
