@@ -60,6 +60,7 @@
     <Compile Include="Encoder\DefaultEncoder.cs" />
     <Compile Include="Encoder\IEncoder.cs" />
     <Compile Include="Encoder\SimpleEncoder.cs" />
+    <Compile Include="Frame.cs" />
     <Compile Include="Helper\Rational.cs" />
     <Compile Include="InternalImage.cs" />
     <Compile Include="Decoder\SimpleDecoder.cs" />

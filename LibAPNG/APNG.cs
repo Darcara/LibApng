@@ -21,22 +21,23 @@ namespace Omega.Lib.APNG
 
 		[ThreadStatic]
 		private static Crc32 _crc32;
-		public static readonly byte[] MagicBytes = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
-
-		private readonly List<APngChunk> _chunks = new List<APngChunk>();
+		private static readonly byte[] _magicBytes = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+		private UInt32 _sequenceNumber = 0;
+		private InternalImage _lastImage = null;
+		//private readonly List<APngChunk> _chunks = new List<APngChunk>();
 		private readonly List<IDecoder> _decoders = new List<IDecoder>();
+
+		protected Object DefaultImageObject = null;
+		protected IEnumerable<Frame> FrameObjects = null;
 
 		public IEncoder Encoder { get; set; }
 		public Ihdr Ihdr { get; private set; }
 		public byte[] Palette { get; protected set; }
 
-		public Boolean DefaultImageSet { get; protected set; }
-		public UInt32 FramesAdded { get; protected set; }
+		public Boolean DefaultImageSet { get { return DefaultImageObject != null; } }
+		//public UInt32 FramesAdded { get; protected set; }
 		public UInt32 Loops = 0;
-		private UInt32 _sequenceNumber = 0;
-		private InternalImage _lastImage = null;
-		
-		
+
 		public APNG(Ihdr ihdr, UInt32 loops = 0)
 			{
 			Loops = loops;
@@ -50,21 +51,63 @@ namespace Omega.Lib.APNG
 				_decoders.Add(decoder);
 			}
 
-
 		public void ToFile(String filename)
 			{
 			Stream fileOut = File.OpenWrite(filename);
+			InternalImage img = null;
+
 			try
 				{
-				foreach (var b in MagicBytes)
+				foreach (var b in _magicBytes)
 					fileOut.WriteByte(b);
 
 				WriteChunk(Ihdr, fileOut);
-				if(FramesAdded > 0)
-					WriteChunk(new Actl(FramesAdded, Loops), fileOut);
+				WriteChunk(new Actl((UInt32) FrameObjects.Count(), Loops), fileOut);
 
-				foreach(var pngChunk in _chunks)
-					WriteChunk(pngChunk, fileOut);
+				//write pallette
+				//if(img.RgbPaletteData != null)
+				//  _chunks.Add(Encoder.CreatePalette(img));
+
+
+				//write default image -->
+				if(DefaultImageSet)
+					{
+					img = DecodeObject(DefaultImageObject);
+					if (img == null)
+						throw new InvalidDataException("No decoder for default image object type " + DefaultImageObject.GetType().Name);
+
+					var image = Encoder.EncodeImage(Ihdr, img, _sequenceNumber - 1);
+					WriteChunk(image.Item2, fileOut);
+					}
+				//<-- write default image
+
+				//write frames -->
+				foreach(var frameObject in FrameObjects)
+					{
+					img = DecodeObject(frameObject.FrameObject);
+					if (img == null)
+						throw new InvalidDataException("No decoder for frame(" + _sequenceNumber + ") object type " + frameObject.FrameObject.GetType().Name);
+
+					if (!DefaultImageSet)
+						{
+						Tuple<Fctl, Idat> image = Encoder.EncodeImage(Ihdr, img, _sequenceNumber);
+
+						WriteChunk(image.Item1, fileOut);
+						WriteChunk(image.Item2, fileOut);
+						_sequenceNumber += 1;
+						}
+					else
+						{
+						Tuple<Fctl, Fdat> frame = Encoder.EncodeFrame(Ihdr, img, _sequenceNumber, _lastImage, frameObject.Delay);
+
+						WriteChunk(frame.Item1, fileOut);
+						WriteChunk(frame.Item2, fileOut);
+						_sequenceNumber += 2;
+						}
+
+					_lastImage = img;
+					}
+				//<-- write frames
 
 				WriteChunk(new Iend(), fileOut);
 				}
@@ -101,38 +144,12 @@ namespace Omega.Lib.APNG
 			stream.Write(bytes, 0, count);
 			}
 
-		public void AddKeyFrameFromObject(Object obj, Rational delay = default(Rational))
+		//public void AddKeyFrameFromObject(Object obj, Rational delay = default(Rational))
+		//  {
+		//  }
+		public void SetFrames(IEnumerable<Frame> frames)
 			{
-			if(obj == null)
-				throw new ArgumentNullException("obj");
-
-			InternalImage img = DecodeObject(obj);
-			if(img == null)
-				throw new ArgumentException("No decoder for object type " + obj.GetType().Name);
-
-			if(img.RgbPaletteData != null)
-				_chunks.Add(Encoder.CreatePalette(img));
-
-			if(!DefaultImageSet)
-				{
-				Tuple<Fctl, Idat> image = Encoder.EncodeImage(Ihdr, img, _sequenceNumber);
-
-				_chunks.Add(image.Item1);
-				_chunks.Add(image.Item2);
-				DefaultImageSet = true;
-				_sequenceNumber += 1;
-				}
-			else
-				{
-				Tuple<Fctl, Fdat> frame = Encoder.EncodeFrame(Ihdr, img, _sequenceNumber, _lastImage, delay);
-
-				_chunks.Add(frame.Item1);
-				_chunks.Add(frame.Item2);
-				_sequenceNumber += 2;
-				}
-			
-			_lastImage = img;
-			++FramesAdded;
+			FrameObjects = frames;
 			}
 
 		/// <summary>
@@ -141,25 +158,10 @@ namespace Omega.Lib.APNG
 		/// <param name="obj"></param>
 		public void AddDefaultImageFromObject(Object obj)
 			{
-			if(obj == null)
-				throw new ArgumentNullException("obj");
-
-			if(DefaultImageSet)
-				throw new ArgumentException("Default image already set");
-
-			InternalImage img = DecodeObject(obj);
-			if(img == null)
-				throw  new ArgumentException("No decoder for object type " + obj.GetType().Name);
-
-			if(img.RgbPaletteData != null)
-				_chunks.Add(Encoder.CreatePalette(img));
-
-			var image = Encoder.EncodeImage(Ihdr, img, _sequenceNumber-1);
-			_chunks.Add(image.Item2);
-			DefaultImageSet = true;
+			DefaultImageObject = obj;
 			}
 
-		public InternalImage DecodeObject(Object obj)
+		protected InternalImage DecodeObject(Object obj)
 			{
 			IDecoder decoder = _decoders.FirstOrDefault(dec => dec.CanDecode(obj));
 			return decoder == null ? null : decoder.Decode(obj, Ihdr, Palette);

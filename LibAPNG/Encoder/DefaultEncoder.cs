@@ -40,9 +40,9 @@ namespace Omega.Lib.APNG.Encoder
 		//read http://stackoverflow.com/questions/6216094/implementing-the-apng-render-function
 		public Tuple<Fctl, Fdat> EncodeFrame(Ihdr ihdr, InternalImage img, uint sequenceNumber, InternalImage lastImage, Rational delay)
 			{
-			Rectangle bb = CalculateDifferenceBoundingBox(img, lastImage);
-			float approxns = ApproximateCompressionSize(img, lastImage, bb, ApngDisposeOperation.None, ApngBlendOperation.Source);
-			float approxns = ApproximateCompressionSize(img, lastImage, bb, ApngDisposeOperation., ApngBlendOperation.Source);
+			//Rectangle bb = CalculateDifferenceBoundingBox(img, lastImage);
+			//float approxns = ApproximateCompressionSize(img, lastImage, bb, ApngDisposeOperation.None, ApngBlendOperation.Source);
+			//float approxns = ApproximateCompressionSize(img, lastImage, bb, ApngDisposeOperation., ApngBlendOperation.Source);
 
 			return new Tuple<Fctl, Fdat>(new Fctl(ihdr, sequenceNumber, 0, 0, img.Ihdr.Width, img.Ihdr.Height, delay, ApngDisposeOperation.None, ApngBlendOperation.Source), new Fdat(sequenceNumber+1, Encode(img, lastImage), true));
 			}

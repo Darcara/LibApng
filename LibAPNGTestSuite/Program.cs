@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -38,17 +41,21 @@ namespace Omega.Lib.APNG.Test
 
 			var ihdr = new Ihdr(imageDimension, imageDimension, BitDepth._8, ColorType.Rgb);
 			var apng = new APNG(ihdr);
-
 			apng.RegisterDecoder(new SimpleDecoder());
 			apng.Encoder = enc;
 			apng.AddDefaultImageFromObject(i);
 
+			var frames = new Frame[i.Height / 2];
+
 			for(int j = 0; j < i.Height / 2; j++)
 				{
-				g.Clear(Color.Blue);
-				g.DrawEllipse(new Pen(Color.Lime), i.Width / 4, j, i.Width / 2, i.Height / 2);
-				apng.AddKeyFrameFromObject(i, new Rational(10, 100));
+				var bmp = new Bitmap((int)imageDimension, (int)imageDimension, PixelFormat.Format24bppRgb);
+				var gr = Graphics.FromImage(bmp);
+				gr.Clear(Color.Blue);
+				gr.DrawEllipse(new Pen(Color.Lime), bmp.Width / 4, j, bmp.Width / 2, bmp.Height / 2);
+				frames[j] = new Frame() { Delay = new Rational(10, 100), FrameObject = bmp };
 				}
+			apng.SetFrames(frames);
 
 			String fileName = String.Format("{0}_{1}x{2}_{3}.png", enc.GetType().Name, imageDimension, imageDimension, 0);
 
@@ -67,16 +74,19 @@ namespace Omega.Lib.APNG.Test
 
 			String nowString = DateTime.UtcNow.ToString(@"yyyy\-MM\-dd HH:mm");
 			g.Clear(Color.Blue);
-			g.DrawString(nowString, new Font("Consolas", 7), new SolidBrush(Color.Lime), 5, i.Height/2f);
+			g.DrawString(nowString, new Font("Consolas", 7), new SolidBrush(Color.Lime), 5, i.Height / 2f);
 			apng.AddDefaultImageFromObject(i);
+			frames = new Frame[i.Height / 2-10];
 
 			for(int j = 10; j < i.Height / 2; j++)
 				{
-				g.Clear(Color.Blue);
-				g.DrawString(nowString, new Font("Consolas", 7), new SolidBrush(Color.Lime), 5, j);
-				apng.AddKeyFrameFromObject(i, new Rational(10, 100));
+				var bmp = new Bitmap((int)imageDimension, (int)imageDimension, PixelFormat.Format24bppRgb);
+				var gr = Graphics.FromImage(bmp);
+				gr.Clear(Color.Blue);
+				gr.DrawString(nowString, new Font("Consolas", 7), new SolidBrush(Color.Lime), 5, j);
+				frames[j-10] = new Frame() { Delay = new Rational(10, 100), FrameObject = bmp };
 				}
-
+			apng.SetFrames(frames);
 			fileName = String.Format("{0}_{1}x{2}_{3}.png", enc.GetType().Name, imageDimension, imageDimension, 1);
 
 			if(File.Exists(fileName))
